@@ -1,0 +1,174 @@
+---
+- hosts: localhost
+  become: yes
+
+  tasks:
+
+    - name: Install essential packages
+      apt:
+        name:
+          - build-essential
+          - git
+          - curl
+          - wget
+          - unzip
+          - gnupg
+          - lsb-release
+          - ca-certificates
+          - software-properties-common
+          - apt-transport-https
+        state: present
+        update_cache: yes
+
+    - name: Install Docker using apt
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Install Terraform
+      apt:
+        name: terraform
+        state: present
+
+    - name: Install Ansible and jq
+      apt:
+        name:
+          - ansible
+          - jq
+        state: present
+
+    - name: Install kubectl via snap
+      snap:
+        name: kubectl
+        classic: yes
+        state: present
+
+    - name: Install AWS CLI
+      shell: |
+        if ! command -v aws; then
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -o awscliv2.zip
+          ./aws/install --update
+          rm -rf aws awscliv2.zip
+        fi
+
+    - name: Install Azure CLI
+      shell: curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+    - name: Install Google Cloud SDK
+      shell: |
+        if ! command -v gcloud; then
+          apt-get install -y apt-transport-https ca-certificates gnupg
+          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | \
+          tee /etc/apt/sources.list.d/google-cloud-sdk.list
+          curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor | tee /usr/share/keyrings/cloud.google.gpg > /dev/null
+          apt-get update -y && apt-get install -y google-cloud-cli
+        fi
+
+    - name: Install OCI CLI
+      shell: |
+        if ! command -v oci; then
+          bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" -- --accept-all-defaults
+        fi
+
+    - name: Clone cloud-devops-automation repo
+      git:
+        repo: 'https://github.com/prabhakaran-jm/cloud-devops-automation.git'
+        dest: '~/cloud-devops-automation'
+        update: yes
+
+    - name: Source dotfiles in bashrc
+      lineinfile:
+        path: ~/.bashrc
+        line: 'source ~/cloud-devops-automation/dotfiles/.bashrc'
+        state: present
+
+########################################
+#  Advanced DevOps Tools
+########################################
+
+    - name: Install Pulumi
+      shell: |
+        if ! command -v pulumi; then
+          curl -fsSL https://get.pulumi.com | bash
+        fi
+      args:
+        executable: /bin/bash
+
+    - name: Install Flux
+      shell: |
+        if ! command -v flux; then
+          curl -s https://fluxcd.io/install.sh | sudo bash
+        fi
+
+    - name: Install ArgoCD
+      shell: |
+        if ! command -v argocd; then
+          curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x /usr/local/bin/argocd
+        fi
+
+    - name: Install Stern
+      shell: |
+        if ! command -v stern; then
+          curl -Lo /usr/local/bin/stern https://github.com/stern/stern/releases/latest/download/stern_linux_amd64
+          chmod +x /usr/local/bin/stern
+        fi
+
+    - name: Install k9s
+      shell: |
+        if ! command -v k9s; then
+          curl -Lo /usr/local/bin/k9s https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_x86_64
+          chmod +x /usr/local/bin/k9s
+        fi
+
+    - name: Install kubectx & kubens
+      snap:
+        name: kubectx
+        classic: yes
+        state: present
+
+    - name: Install AWS Vault
+      shell: |
+        if ! command -v aws-vault; then
+          curl -Lo /usr/local/bin/aws-vault https://github.com/99designs/aws-vault/releases/latest/download/aws-vault-linux-amd64
+          chmod +x /usr/local/bin/aws-vault
+        fi
+
+    - name: Install SOPS
+      shell: |
+        if ! command -v sops; then
+          curl -Lo /usr/local/bin/sops https://github.com/getsops/sops/releases/latest/download/sops-linux-amd64
+          chmod +x /usr/local/bin/sops
+        fi
+
+    - name: Install Cosign
+      shell: |
+        if ! command -v cosign; then
+          curl -Lo /usr/local/bin/cosign https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
+          chmod +x /usr/local/bin/cosign
+        fi
+
+    - name: Install Vault
+      apt:
+        name: vault
+        state: present
+
+    - name: Run preflight check
+      shell: |
+        if [ -f ~/cloud-devops-automation/preflight-check.sh ]; then
+          bash ~/cloud-devops-automation/preflight-check.sh
+        else
+          echo "Preflight script not found."
+        fi

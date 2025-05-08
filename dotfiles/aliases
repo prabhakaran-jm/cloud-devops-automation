@@ -1,0 +1,8 @@
+alias k='kubectl'
+alias kctx='kubectx'
+alias kns='kubens'
+alias tf='terraform'
+alias dc='docker compose'
+alias ll='ls -lah'
+alias gs='git status'
+alias gd='git diff'

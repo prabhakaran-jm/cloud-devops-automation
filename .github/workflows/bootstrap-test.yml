@@ -1,0 +1,31 @@
+name: Test Bootstrap DevOps Script
+
+on:
+  push:
+    paths:
+      - 'bootstrap-devops.sh'
+      - 'preflight-check.sh'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Update and install dependencies
+      run: sudo apt-get update -y && sudo apt-get install -y unzip curl gnupg lsb-release software-properties-common
+
+    - name: Make bootstrap script executable
+      run: chmod +x bootstrap-devops.sh
+
+    - name: Run bootstrap script
+      run: ./bootstrap-devops.sh
+
+    - name: Make preflight script executable
+      run: chmod +x preflight-check.sh
+
+    - name: Run preflight check
+      run: ./preflight-check.sh
