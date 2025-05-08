@@ -108,8 +108,6 @@ bootstrap-devops.sh               # Manual setup script
 preflight-check.sh                # Validation script  
 site.yml                          # Ansible Playbook  
 .github/workflows/                # GitHub Actions workflow  
-.github/ISSUE_TEMPLATE/           # Bug and feature templates  
-.github/pull_request_template.md  # PR template  
 dotfiles/                         # Shell customization (.bashrc, aliases, .vimrc)  
 Vagrantfile                       # Local VM provisioning  
 terraform/main.tf                 # Cloud VM provisioning (AWS)  
